@@ -1,0 +1,107 @@
+/* ── Reset ── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f8;
+  color: #333;
+}
+
+/* ── Layout ── */
+.container {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Cards ── */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.card h2 {
+  margin-bottom: 0.75rem;
+}
+
+/* ── Alert box ── */
+.alert-box {
+  background: #fff3cd;
+  border-left: 5px solid #ffc107;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+}
+.alert-box ul {
+  padding-left: 1.25rem;
+}
+.qty-warn {
+  color: #d9534f;
+  font-weight: 700;
+}
+
+/* ── Form ── */
+.add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.add-form input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 1 1 120px;
+}
+.add-form button,
+.card > button {
+  padding: 0.4rem 1rem;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.card > button {
+  margin-right: 0.5rem;
+}
+.card > button:hover,
+.add-form button:hover {
+  background: #0a58ca;
+}
+
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+}
+th {
+  background: #f1f3f5;
+}
+.row-warn {
+  background: #fff3cd;
+}
+.btn-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.report-msg {
+  margin-top: 0.75rem;
+  font-style: italic;
+}
