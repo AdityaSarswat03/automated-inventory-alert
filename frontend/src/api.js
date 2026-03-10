@@ -12,3 +12,10 @@ export const generateReport = (fmt = "csv") =>
   API.post(`/reports?fmt=${fmt}`);
 export const getReportDownloadUrl = (filename) =>
   `http://localhost:8000/api/reports/download/${encodeURIComponent(filename)}`;
+export const uploadCSV = (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return API.post("/products/upload-csv", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};

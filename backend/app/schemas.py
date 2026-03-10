@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -49,3 +49,15 @@ class ReportMeta(BaseModel):
     format: str
     generated_at: str
     record_count: int
+
+
+class CSVProductError(BaseModel):
+    row: int
+    error: str
+
+
+class CSVUploadResponse(BaseModel):
+    total_rows: int
+    successful: int
+    skipped: int
+    errors: List[CSVProductError]

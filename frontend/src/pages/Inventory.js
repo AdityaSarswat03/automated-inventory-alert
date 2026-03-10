@@ -4,6 +4,7 @@ import {
   createProduct,
   updateStock,
   deleteProduct,
+  uploadCSV,
 } from "../api";
 import StatusBadge from "../components/StatusBadge";
 
@@ -23,6 +24,10 @@ export default function Inventory() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadResults, setUploadResults] = useState(null);
 
   const load = async () => {
     try {
@@ -101,18 +106,70 @@ export default function Inventory() {
     }
   };
 
+  const handleCSVUpload = async (e) => {
+    e.preventDefault();
+    if (!csvFile) {
+      alert("Please select a CSV file");
+      return;
+    }
+
+    setUploading(true);
+    setUploadResults(null);
+
+    try {
+      const res = await uploadCSV(csvFile);
+      setUploadResults(res.data);
+      if (res.data.successful > 0) {
+        load(); // Reload products
+      }
+    } catch (err) {
+      alert("Upload failed: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const downloadSampleCSV = () => {
+    const sample = `name,sku,quantity,price,low_stock_threshold
+Premium Widget,PWD-001,150,29.99,20
+Basic Widget,BWD-001,200,9.99,15
+Deluxe Widget,DWD-001,75,49.99,10`;
+    
+    const blob = new Blob([sample], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sample_products.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    setCsvFile(null);
+    setUploadResults(null);
+  };
+
   if (loading) return <div className="page-loader">Loading…</div>;
 
   return (
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">Inventory Management</h1>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? "Cancel" : "+ Add Product"}
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowUploadModal(true)}
+          >
+            📤 Import CSV
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? "Cancel" : "+ Add Product"}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -175,6 +232,76 @@ export default function Inventory() {
               Save Product
             </button>
           </form>
+        </div>
+      )}
+
+      {showUploadModal && (
+        <div className="card form-card">
+          <h2 className="card-title">Import Products from CSV</h2>
+          <form onSubmit={handleCSVUpload} className="inv-form">
+            <div className="form-group">
+              <label>Select CSV File</label>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => setCsvFile(e.target.files[0])}
+                disabled={uploading}
+              />
+              <small style={{ display: "block", marginTop: "5px", color: "#666" }}>
+                CSV must contain columns: name, sku, quantity, price, low_stock_threshold (optional)
+              </small>
+            </div>
+
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={uploading || !csvFile}
+              >
+                {uploading ? "Uploading..." : "Upload CSV"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={downloadSampleCSV}
+                disabled={uploading}
+              >
+                Download Sample
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={closeUploadModal}
+                disabled={uploading}
+              >
+                Close
+              </button>
+            </div>
+          </form>
+
+          {uploadResults && (
+            <div style={{ marginTop: "20px" }}>
+              <h3 style={{ marginBottom: "10px" }}>Upload Results</h3>
+              <div style={{ padding: "15px", backgroundColor: "#f0f0f0", borderRadius: "5px" }}>
+                <p><strong>Total Rows:</strong> {uploadResults.total_rows}</p>
+                <p style={{ color: "green" }}><strong>Successful:</strong> {uploadResults.successful}</p>
+                <p style={{ color: "red" }}><strong>Skipped:</strong> {uploadResults.skipped}</p>
+              </div>
+
+              {uploadResults.errors.length > 0 && (
+                <div style={{ marginTop: "15px" }}>
+                  <h4>Errors:</h4>
+                  <div style={{ maxHeight: "200px", overflow: "auto", border: "1px solid #ddd", padding: "10px", borderRadius: "5px" }}>
+                    {uploadResults.errors.map((err, idx) => (
+                      <div key={idx} style={{ marginBottom: "5px", color: "#d32f2f" }}>
+                        <strong>Row {err.row}:</strong> {err.error}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

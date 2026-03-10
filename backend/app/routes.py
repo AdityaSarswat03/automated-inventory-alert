@@ -1,8 +1,11 @@
 import os
+import csv
+import io
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List
 from datetime import datetime, timezone
 
@@ -17,6 +20,8 @@ from app.schemas import (
     StockUpdate,
     AlertItem,
     ReportMeta,
+    CSVUploadResponse,
+    CSVProductError,
 )
 from app.report_utils import generate_csv_report, generate_json_report
 
@@ -43,6 +48,84 @@ def create_product(payload: ProductCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(product)
     return product
+
+
+@router.post("/products/upload-csv", response_model=CSVUploadResponse, tags=["Products"])
+async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    # Validate file extension
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    
+    # Read file content
+    content = await file.read()
+    try:
+        text_content = content.decode("utf-8")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded")
+    
+    # Parse CSV
+    csv_reader = csv.DictReader(io.StringIO(text_content))
+    
+    # Validate required columns
+    required_columns = {"name", "sku", "quantity", "price"}
+    if not required_columns.issubset(set(csv_reader.fieldnames or [])):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"CSV must contain columns: {', '.join(required_columns)}"
+        )
+    
+    errors = []
+    successful = 0
+    total_rows = 0
+    
+    for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 (header is row 1)
+        total_rows += 1
+        
+        try:
+            # Parse and validate data
+            product_data = {
+                "name": row["name"].strip(),
+                "sku": row["sku"].strip(),
+                "quantity": int(row["quantity"]),
+                "price": float(row["price"]),
+                "low_stock_threshold": int(row.get("low_stock_threshold", 10))
+            }
+            
+            # Validate using Pydantic schema
+            product_create = ProductCreate(**product_data)
+            
+            # Create product in database
+            product = Product(**product_create.model_dump())
+            db.add(product)
+            db.commit()
+            db.refresh(product)
+            successful += 1
+            
+        except ValueError as e:
+            errors.append(CSVProductError(
+                row=row_num,
+                error=f"Invalid data format: {str(e)}"
+            ))
+            db.rollback()
+        except IntegrityError as e:
+            errors.append(CSVProductError(
+                row=row_num,
+                error=f"Duplicate SKU or name: {row.get('sku', 'N/A')}"
+            ))
+            db.rollback()
+        except Exception as e:
+            errors.append(CSVProductError(
+                row=row_num,
+                error=str(e)
+            ))
+            db.rollback()
+    
+    return CSVUploadResponse(
+        total_rows=total_rows,
+        successful=successful,
+        skipped=len(errors),
+        errors=errors
+    )
 
 
 @router.put("/products/{product_id}", response_model=ProductResponse, tags=["Products"])
