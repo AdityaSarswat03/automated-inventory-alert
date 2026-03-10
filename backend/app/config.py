@@ -15,4 +15,6 @@ DATABASE_URL = (
 
 LOW_STOCK_THRESHOLD = int(os.getenv("LOW_STOCK_THRESHOLD", "10"))
 CHECK_INTERVAL_MINUTES = int(os.getenv("CHECK_INTERVAL_MINUTES", "30"))
-REPORTS_DIR = os.getenv("REPORTS_DIR", "reports")
+
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPORTS_DIR = os.getenv("REPORTS_DIR", os.path.join(_BASE_DIR, "reports"))
