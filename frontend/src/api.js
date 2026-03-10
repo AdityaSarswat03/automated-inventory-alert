@@ -10,3 +10,5 @@ export const deleteProduct = (id) => API.delete(`/products/${id}`);
 export const fetchAlerts = () => API.get("/alerts");
 export const generateReport = (fmt = "csv") =>
   API.post(`/reports?fmt=${fmt}`);
+export const getReportDownloadUrl = (filename) =>
+  `http://localhost:8000/api/reports/download/${encodeURIComponent(filename)}`;

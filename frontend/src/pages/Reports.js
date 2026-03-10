@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { generateReport } from "../api";
+import { generateReport, getReportDownloadUrl } from "../api";
 
 const STORAGE_KEY = "inv_reports_history";
 
@@ -38,6 +38,12 @@ export default function Reports() {
       setMessage(
         `✅ Report generated — ${entry.records} records → ${entry.filename}`
       );
+      const link = document.createElement("a");
+      link.href = getReportDownloadUrl(entry.filename);
+      link.download = entry.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
       setMessage(
         "❌ Failed to generate report: " +
@@ -104,6 +110,7 @@ export default function Reports() {
                   <th>Format</th>
                   <th>Records</th>
                   <th>Date</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -125,6 +132,15 @@ export default function Reports() {
                     <td className="cell-num">{r.records}</td>
                     <td className="cell-date">
                       {new Date(r.date).toLocaleString()}
+                    </td>
+                    <td>
+                      <a
+                        href={getReportDownloadUrl(r.filename)}
+                        download={r.filename}
+                        className="btn btn-sm btn-primary"
+                      >
+                        Download
+                      </a>
                     </td>
                   </tr>
                 ))}

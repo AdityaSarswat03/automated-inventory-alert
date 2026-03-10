@@ -1,7 +1,12 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timezone
+
+from app.config import REPORTS_DIR
 
 from app.database import get_db
 from app.models import Product
@@ -98,8 +103,17 @@ def generate_report(
         filepath = generate_csv_report(products)
 
     return ReportMeta(
-        filename=filepath,
+        filename=os.path.basename(filepath),
         format=fmt,
         generated_at=datetime.now(timezone.utc).isoformat(),
         record_count=len(products),
     )
+
+
+@router.get("/reports/download/{filename}", tags=["Reports"])
+def download_report(filename: str):
+    filepath = os.path.join(REPORTS_DIR, filename)
+    if not os.path.isfile(filepath):
+        raise HTTPException(status_code=404, detail="Report file not found")
+    media = "text/csv" if filename.endswith(".csv") else "application/json"
+    return FileResponse(filepath, media_type=media, filename=filename)
