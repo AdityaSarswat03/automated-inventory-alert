@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""
-Automation script — runs on a schedule to check inventory levels and
-print low‑stock alerts to the console (could be extended to send emails).
-Uses the `schedule` library.
-
-Usage:
-    python scheduler.py
-"""
 
 import time
 import schedule
@@ -18,7 +10,6 @@ from app.report_utils import generate_csv_report
 
 
 def check_inventory():
-    """Query the DB for low‑stock items and print alerts."""
     db: Session = SessionLocal()
     try:
         low_stock = (
@@ -33,7 +24,6 @@ def check_inventory():
                 print(f"  {p.name} (SKU: {p.sku}) — {p.quantity} left (threshold: {p.low_stock_threshold})")
             print("-" * 50)
 
-            # Auto‑generate a CSV report for the ops team
             all_products = db.query(Product).order_by(Product.name).all()
             path = generate_csv_report(all_products)
             print(f"  📄 Report saved → {path}\n")
@@ -45,7 +35,6 @@ def check_inventory():
 
 def main():
     print(f"🔄 Inventory checker started — running every {CHECK_INTERVAL_MINUTES} min(s)")
-    # Run once immediately, then on the schedule
     check_inventory()
     schedule.every(CHECK_INTERVAL_MINUTES).minutes.do(check_inventory)
 

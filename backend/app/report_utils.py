@@ -1,5 +1,3 @@
-"""Utility helpers for CSV / JSON report generation."""
-
 import csv
 import json
 import os
@@ -29,7 +27,6 @@ def _product_to_dict(p: Product) -> dict:
 
 
 def generate_csv_report(products: List[Product]) -> str:
-    """Write all products to a CSV file and return the file path."""
     _ensure_reports_dir()
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     filepath = os.path.join(REPORTS_DIR, f"stock_report_{timestamp}.csv")
@@ -48,7 +45,6 @@ def generate_csv_report(products: List[Product]) -> str:
 
 
 def generate_json_report(products: List[Product]) -> str:
-    """Write all products to a JSON file and return the file path."""
     _ensure_reports_dir()
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     filepath = os.path.join(REPORTS_DIR, f"stock_report_{timestamp}.json")

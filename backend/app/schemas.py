@@ -3,8 +3,6 @@ from typing import Optional
 from datetime import datetime
 
 
-# ---------- Request schemas ----------
-
 class ProductCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, examples=["Widget A"])
     sku: str = Field(..., min_length=1, max_length=100, examples=["WDG-001"])
@@ -21,11 +19,9 @@ class ProductUpdate(BaseModel):
 
 
 class StockUpdate(BaseModel):
-    """Used specifically for adjusting stock quantity."""
     quantity: int = Field(..., ge=0, description="New absolute stock quantity")
 
 
-# ---------- Response schemas ----------
 
 class ProductResponse(BaseModel):
     id: int

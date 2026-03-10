@@ -18,12 +18,8 @@ from app.report_utils import generate_csv_report, generate_json_report
 router = APIRouter()
 
 
-# ──────────────────────────── Products CRUD ────────────────────────────
-
-
 @router.get("/products", response_model=List[ProductResponse], tags=["Products"])
 def list_products(db: Session = Depends(get_db)):
-    """Return every product in the inventory."""
     return db.query(Product).order_by(Product.name).all()
 
 
@@ -59,7 +55,6 @@ def update_product(product_id: int, payload: ProductUpdate, db: Session = Depend
 
 @router.patch("/products/{product_id}/stock", response_model=ProductResponse, tags=["Products"])
 def update_stock(product_id: int, payload: StockUpdate, db: Session = Depends(get_db)):
-    """Update only the stock quantity of a product."""
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -79,12 +74,8 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
-# ──────────────────────────── Alerts ────────────────────────────
-
-
 @router.get("/alerts", response_model=List[AlertItem], tags=["Alerts"])
 def get_low_stock_alerts(db: Session = Depends(get_db)):
-    """Return products whose quantity is at or below their low‑stock threshold."""
     products = (
         db.query(Product)
         .filter(Product.quantity <= Product.low_stock_threshold)
@@ -94,15 +85,11 @@ def get_low_stock_alerts(db: Session = Depends(get_db)):
     return products
 
 
-# ──────────────────────────── Reports ────────────────────────────
-
-
 @router.post("/reports", response_model=ReportMeta, tags=["Reports"])
 def generate_report(
     fmt: str = Query(default="csv", pattern="^(csv|json)$"),
     db: Session = Depends(get_db),
 ):
-    """Generate a stock report file (csv or json) and return metadata."""
     products = db.query(Product).order_by(Product.name).all()
 
     if fmt == "json":

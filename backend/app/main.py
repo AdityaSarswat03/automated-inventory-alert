@@ -9,8 +9,6 @@ from app.routes import router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Try to create tables; if the DB isn't reachable yet that's fine —
-    # another team member will configure MySQL later.
     try:
         Base.metadata.create_all(bind=engine)
         print("✅ Database tables created / verified.")
@@ -26,7 +24,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Allow the React dev server (port 3000) to talk to the API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
