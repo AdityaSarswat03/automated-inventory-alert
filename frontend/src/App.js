@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import AlertsPanel from "./components/AlertsPanel";
+import ToastContainer from "./components/ToastContainer";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Reports from "./pages/Reports";
@@ -26,6 +27,7 @@ function App() {
             </Routes>
           </div>
         </div>
+        <ToastContainer />
       </div>
     </BrowserRouter>
   );
